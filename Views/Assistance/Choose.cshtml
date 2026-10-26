@@ -1,0 +1,15 @@
+@model List<HouseholdRow>
+@{ ViewData["Title"] = "ค้นหาประวัติช่วยเหลือ"; }
+<div class="page-heading"><div><div class="eyebrow">ASSISTANCE HISTORY</div><h1>ค้นหาประวัติการช่วยเหลือ</h1><p>เลือกครัวเรือนเพื่อดูความช่วยเหลือที่ผ่านมา ทั้งระดับครอบครัวและรายบุคคล</p></div></div>
+@if (ViewBag.IsSampleData == true) { <div class="sample-note"><span>i</span> กำลังแสดงครัวเรือนตัวอย่าง เนื่องจากยังไม่สามารถเชื่อมต่อ Database ได้ ข้อมูลนี้ไม่ใช่ข้อมูลจริง</div> }
+<section class="panel household-panel">
+  <form class="filter-bar" method="get" asp-action="Choose">
+    <div class="search-field"><span>⌕</span><input name="search" value="@ViewBag.Search" placeholder="ค้นหารหัสบ้านหรือหมู่บ้าน" data-filter-target="#assistanceHouseholdsTable tbody tr" /></div>
+    <button class="btn-primary" type="submit">⌕ ค้นหา</button>
+  </form>
+  <div class="table-caption"><div><h2>เลือกครัวเรือน</h2><span>กดดูประวัติ เพื่อแสดงการช่วยเหลือและคำร้องทั้งหมดของบ้านนั้น</span></div><span class="table-count">@Model.Count รายการ</span></div>
+  <div class="table-wrap"><table class="data-table" id="assistanceHouseholdsTable"><thead><tr><th>รหัสบ้าน</th><th>หมู่บ้าน</th><th>ตำบล</th><th>อำเภอ</th><th>สมาชิก</th><th>เปิดประวัติ</th></tr></thead><tbody>
+  @foreach (var row in Model) { <tr><td><span class="code-pill">@row.HouseCode</span></td><td>@row.Village</td><td>@row.Tumbol</td><td>@row.Amphur</td><td><span class="member-count">@row.MemberCount คน</span></td><td><a class="action-view" asp-controller="Assistance" asp-action="Index" asp-route-houseId="@row.HouseId">ดูประวัติ →</a></td></tr> }
+  </tbody></table></div>
+  @if (Model.Count == 0) { <div class="empty-history"><div>⌕</div><strong>ไม่พบครัวเรือน</strong><p>ลองเปลี่ยนคำค้นหาแล้วค้นหาอีกครั้ง</p></div> }
+</section>

@@ -1,0 +1,51 @@
+@model AssistanceHistoryViewModel
+@{
+    ViewData["Title"] = "ประวัติการช่วยเหลือ";
+    var title = Model.MemberId.HasValue ? "ประวัติการช่วยเหลือรายบุคคล" : "ประวัติการช่วยเหลือครัวเรือน";
+}
+<div class="page-heading">
+  <div><div class="eyebrow">ASSISTANCE HISTORY</div><h1>@title</h1><p>ตรวจสอบความช่วยเหลือที่บันทึกไว้และคำร้องที่เกี่ยวข้องในอดีต</p></div>
+  <a class="btn-outline" asp-controller="Household" asp-action="Details" asp-route-id="@Model.HouseId">← กลับรายละเอียดครัวเรือน</a>
+</div>
+<div class="breadcrumb"><a asp-controller="Dashboard" asp-action="Index">หน้าหลัก</a><span>›</span><a asp-controller="Household" asp-action="Index">ข้อมูลครัวเรือน</a><span>›</span><a asp-controller="Household" asp-action="Details" asp-route-id="@Model.HouseId">@Model.HouseCode</a><span>›</span><strong>ประวัติการช่วยเหลือ</strong></div>
+@if (Model.IsSampleData) { <div class="sample-note"><span>!</span><strong>ข้อมูลตัวอย่างเท่านั้น</strong> รายการด้านล่างเป็นข้อมูลจำลองเพื่อแสดงการทำงาน ไม่ใช่ประวัติจริงของบุคคล/ครอบครัว</div> }
+@if (!string.IsNullOrWhiteSpace(Model.Notice)) { <div class="sample-note"><span>i</span>@Model.Notice</div> }
+@if (TempData["Success"] != null) { <div class="success-note">✓ @TempData["Success"]</div> }
+<section class="panel aid-profile">
+  <div class="aid-profile-icon">♡</div><div class="aid-profile-content"><div class="eyebrow">@(Model.MemberId.HasValue ? "PERSON" : "HOUSEHOLD")</div><h2>@(Model.MemberId.HasValue ? Model.MemberName : Model.HouseholdLabel)</h2><p>@Model.Village · ตำบล@Model.Tumbol · อำเภอ@Model.Amphur</p><div class="aid-tags"><span>รหัสบ้าน @Model.HouseCode</span>@if(Model.MemberId.HasValue){<span>รหัสสมาชิก @Model.MemberId</span>}</div></div>
+  <a class="btn-primary" asp-controller="Assistance" asp-action="Create" asp-route-houseId="@Model.HouseId" asp-route-memberId="@Model.MemberId">＋ บันทึกความช่วยเหลือที่ได้รับ</a>
+</section>
+<section class="aid-stat-grid">
+  <article class="aid-stat"><span>รายการช่วยเหลือ/คำร้อง</span><strong>@Model.TotalCount</strong><small>รวมรายการที่บันทึกและคำร้องเดิม</small></article>
+  <article class="aid-stat"><span>สถานะเสร็จสิ้น/ส่งมอบแล้ว</span><strong>@Model.CompletedCount</strong><small>นับจากสถานะที่บันทึกไว้</small></article>
+  <article class="aid-stat"><span>สมาชิกที่มีข้อมูลสวัสดิการ</span><strong>@Model.WelfareStatuses.Count</strong><small>สถานะปัจจุบัน ไม่ใช่ยอดรับเงินย้อนหลัง</small></article>
+</section>
+<section class="panel history-panel">
+  <div class="table-caption"><div><h2>ไทม์ไลน์การช่วยเหลือและคำร้อง</h2><span>ใช้สถานะเพื่อแยก “ได้รับแล้ว” กับ “อยู่ระหว่างดำเนินการ”</span></div><span class="table-count">@Model.Records.Count รายการ</span></div>
+  @if (Model.Records.Count > 0) { <div class="module-search-row"><div class="search-field"><span>⌕</span><input type="search" placeholder="ค้นหาประเภทความช่วยเหลือ โครงการ วันที่ หรือสถานะ..." data-filter-target="#assistanceHistoryTable tbody tr" data-filter-count="#assistanceHistoryCount" /></div><span class="search-caption" id="assistanceHistoryCount">@Model.Records.Count รายการ</span></div> }
+  @if (Model.Records.Count == 0) {
+    <div class="empty-history"><div>▤</div><strong>ยังไม่มีรายการประวัติ</strong><p>หากต้องการเก็บเงิน สิ่งของ อุปกรณ์ หรือโครงการที่ให้ความช่วยเหลือ ให้สร้างตารางตามไฟล์ SQL และกดบันทึกความช่วยเหลือที่ได้รับ</p></div>
+  } else {
+    <div class="table-wrap"><table class="data-table" id="assistanceHistoryTable"><thead><tr><th>วันที่</th><th>ระดับ</th><th>ประเภท</th><th>รายการ / รายละเอียด</th><th>จำนวนเงิน</th><th>สถานะ</th><th>แหล่งข้อมูล</th></tr></thead><tbody>
+      @foreach (var r in Model.Records) {
+        <tr>
+          <td>@(r.AssistanceDate.HasValue ? $"{r.AssistanceDate.Value.Day:00}/{r.AssistanceDate.Value.Month:00}/{r.AssistanceDate.Value.Year + 543}" : "-")</td>
+          <td><span class="scope-chip">@r.Scope</span><small class="muted-row">@r.Recipient</small></td>
+          <td>@r.Category</td>
+          <td><strong>@r.ProgramName</strong>@if(!string.IsNullOrWhiteSpace(r.Details)){<small class="muted-row">@r.Details</small>}@if(r.FinishedDate.HasValue){<small class="muted-row">เสร็จวันที่ @($"{r.FinishedDate.Value.Day:00}/{r.FinishedDate.Value.Month:00}/{r.FinishedDate.Value.Year + 543}")</small>}</td>
+          <td>@(r.Amount.HasValue ? r.Amount.Value.ToString("N2") + " บาท" : "-")</td>
+          <td><span class="history-status @(r.IsCompleted ? "received" : "pending")">@r.Status</span></td>
+          <td><small class="source-label">@(r.Source switch { "assistance_history" => "ประวัติช่วยเหลือ", "repair_house_request" => "คำร้องซ่อมบ้าน", "repair_medical_request" => "คำร้องอุปกรณ์แพทย์", _ => r.Source })</small></td>
+        </tr>
+      }
+    </tbody></table></div>
+  }
+  <div class="history-footnote">หมายเหตุ: รายการจากตารางคำร้องจะแสดงสถานะตามฐานข้อมูล ไม่ถือว่าได้รับความช่วยเหลือเรียบร้อยแล้วจนกว่าสถานะจะระบุว่าเสร็จสิ้น/ส่งมอบแล้ว</div>
+</section>
+<section class="panel assistance-summary-panel">
+  <div class="table-caption"><div><h2>สถานะสวัสดิการปัจจุบัน</h2><span>แสดงข้อมูลจาก member_welfare และ m_welfare_status</span></div></div>
+  @if (Model.WelfareStatuses.Count == 0) { <div class="empty-history compact-empty">ไม่มีข้อมูลสวัสดิการที่บันทึกไว้สำหรับเงื่อนไขนี้</div> }
+  else { <div class="module-search-row"><div class="search-field"><span>⌕</span><input type="search" placeholder="ค้นหาชื่อสมาชิก ประเภทสวัสดิการ หรือสถานะ..." data-filter-target="#assistanceWelfareTable tbody tr" /></div></div><div class="table-wrap"><table class="data-table" id="assistanceWelfareTable"><thead><tr><th>สมาชิก</th><th>ประเภท</th><th>สถานะบัตร</th><th>เพิ่มภายหลัง</th><th>อัปเดตล่าสุด</th></tr></thead><tbody>
+    @foreach (var w in Model.WelfareStatuses) { <tr><td>@w.MemberName</td><td>@w.WelfareName</td><td><span class="history-status @(w.HasWelfareCard ? "received" : "pending")">@(w.HasWelfareCard ? "มีบัตรสวัสดิการ" : "ไม่มีบัตร/ไม่ระบุ")</span></td><td>@(w.IsNewAdded ? "ใช่" : "ไม่ใช่")</td><td>@(w.UpdatedAt.HasValue ? $"{w.UpdatedAt.Value.Day:00}/{w.UpdatedAt.Value.Month:00}/{w.UpdatedAt.Value.Year + 543}" : "-")</td></tr> }
+  </tbody></table></div> }
+</section>

@@ -1,0 +1,24 @@
+@{ ViewData["Title"] = "เข้าสู่ระบบ"; }
+<div class="login-layout">
+  <section class="login-visual">
+    <div class="login-brand"><span class="brand-mark">⌂</span> Logbook</div>
+    <div class="login-visual-copy"><div class="eyebrow">SOCIAL & HOUSEHOLD DATA</div><h1>ข้อมูลที่ดี<br />เริ่มต้นจากชุมชน</h1><p>ระบบข้อมูลครัวเรือนและสังคม เพื่อสนับสนุนการวางแผนและพัฒนาคุณภาพชีวิต</p></div>
+    <div class="login-landscape"></div>
+    <small class="visual-footer">© 2026 Logbook</small>
+  </section>
+  <section class="login-form-side">
+    <a class="back-link" asp-controller="Dashboard" asp-action="Index">← กลับ Dashboard</a>
+    <div class="login-form-card">
+      <div class="login-emblem">⌂</div><div class="eyebrow">ยินดีต้อนรับ</div><h2>เข้าสู่ระบบ</h2><p>กรุณากรอกข้อมูลเพื่อเข้าใช้งานระบบ</p>
+      @if (ViewBag.Error != null) { <div class="error-message">@ViewBag.Error</div> }
+      <form asp-action="Login" method="post">
+        @Html.AntiForgeryToken()<input type="hidden" name="returnUrl" value="@ViewBag.ReturnUrl" />
+        <label for="username">ชื่อผู้ใช้</label><div class="input-wrap"><span>♙</span><input id="username" name="username" autocomplete="username" placeholder="กรอกชื่อผู้ใช้" required /></div>
+        <label for="password">รหัสผ่าน</label><div class="input-wrap"><span>◉</span><input id="password" name="password" type="password" autocomplete="current-password" placeholder="กรอกรหัสผ่าน" required /><button class="show-password" type="button" onclick="togglePassword()">ดู</button></div>
+        <button class="btn-primary full-width" type="submit">เข้าสู่ระบบ <span>→</span></button>
+      </form>
+      <div class="login-note">🔒 ข้อมูลการเข้าสู่ระบบได้รับการปกป้อง</div>
+    </div>
+  </section>
+</div>
+@section Scripts { <script>function togglePassword(){const p=document.getElementById('password');p.type=p.type==='password'?'text':'password';}</script> }

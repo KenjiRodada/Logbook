@@ -1,0 +1,84 @@
+@model DashboardViewModel
+@{
+  ViewData["Title"] = "หน้าหลัก";
+}
+<section class="welcome-banner">
+  <div class="welcome-copy">
+    <div class="eyebrow">Logbook · DATA CENTER</div>
+    <h1>ยินดีต้อนรับเข้าสู่ระบบ</h1>
+    <p>ระบบบริหารจัดการข้อมูลครัวเรือนและสังคม<br />เพื่อการพัฒนาคุณภาพชีวิตอย่างยั่งยืน</p>
+    @if (User.Identity?.IsAuthenticated != true)
+    {
+      <a class="banner-login" asp-controller="Account" asp-action="Login">เข้าสู่ระบบเพื่อจัดการข้อมูล <span>→</span></a>
+    }
+  </div>
+  <div class="banner-art" role="img" aria-label="ภาพหมู่บ้าน"></div>
+</section>
+@if (User.Identity?.IsAuthenticated == true)
+{
+<section class="dashboard-quick-search panel">
+  <form asp-controller="Household" asp-action="Index" method="get" class="dashboard-search-form">
+    <div class="search-field"><span>⌕</span><input name="search" placeholder="ค้นหารหัสบ้านหรือหมู่บ้าน..." /></div>
+    <button class="btn-primary" type="submit">ค้นหาครัวเรือน</button>
+  </form>
+  @if (User.Identity?.IsAuthenticated == true) { <a class="btn-outline" asp-controller="Triage" asp-action="Index">◉ คัดกรองกลุ่มเปราะบางและจัดลำดับช่วยเหลือ →</a> }
+</section>
+}
+
+
+
+@if (!string.IsNullOrWhiteSpace(Model.DbMessage))
+{
+  <div class="sample-note"><span>i</span> ขณะนี้แสดงตัวเลขตัวอย่าง ให้ตั้งค่า Aiven MySQL ใน <code>appsettings.json</code> เพื่อแสดงข้อมูลจริง</div>
+}
+
+<section class="stat-grid">
+  <article class="stat-card"><div class="stat-icon blue">⌂</div><div class="stat-body"><span>จำนวนครัวเรือน</span><strong>@Model.Households.ToString("N0")</strong><small>↗ +3% จากเดือนที่แล้ว</small></div></article>
+  <article class="stat-card"><div class="stat-icon green">♟</div><div class="stat-body"><span>จำนวนสมาชิก</span><strong>@Model.Members.ToString("N0")</strong><small>↗ +2% จากเดือนที่แล้ว</small></div></article>
+  <article class="stat-card"><div class="stat-icon orange">⌖</div><div class="stat-body"><span>จำนวนหมู่บ้าน</span><strong>@Model.Villages.ToString("N0")</strong><small>↗ +1% จากเดือนที่แล้ว</small></div></article>
+  <article class="stat-card"><div class="stat-icon red">♡</div><div class="stat-body"><span>ผู้ป่วย/โรคเรื้อรัง</span><strong>@Model.Diseases.ToString("N0")</strong><small>↗ +5% จากเดือนที่แล้ว</small></div></article>
+  <article class="stat-card"><div class="stat-icon purple">⬡</div><div class="stat-body"><span>ผู้ได้รับสวัสดิการ</span><strong>@Model.WelfareMembers.ToString("N0")</strong><small>↗ +4% จากเดือนที่แล้ว</small></div></article>
+</section>
+
+<section class="dashboard-panels">
+  <article class="panel chart-panel">
+    <div class="panel-head"><div><h2>สรุปข้อมูลครัวเรือนรายอำเภอ</h2><p>เปรียบเทียบจำนวนครัวเรือนและสมาชิก</p></div><div class="legend"><span><i class="blue-dot"></i>ครัวเรือน</span><span><i class="green-dot"></i>สมาชิก</span></div></div>
+    <div class="bar-chart" aria-label="กราฟแท่งตัวอย่าง">
+      <div class="y-labels"><span>5,000</span><span>4,000</span><span>3,000</span><span>2,000</span><span>1,000</span><span>0</span></div>
+      <div class="chart-area">
+        <div class="gridline g1"></div><div class="gridline g2"></div><div class="gridline g3"></div><div class="gridline g4"></div><div class="gridline g5"></div>
+        <div class="bar-pair"><i class="b1" style="height:34%"></i><i class="b2" style="height:72%"></i><label>เมือง</label></div>
+        <div class="bar-pair"><i class="b1" style="height:42%"></i><i class="b2" style="height:61%"></i><label>บ้านม่วง</label></div>
+        <div class="bar-pair"><i class="b1" style="height:29%"></i><i class="b2" style="height:45%"></i><label>หนองหาน</label></div>
+        <div class="bar-pair"><i class="b1" style="height:28%"></i><i class="b2" style="height:53%"></i><label>กุดจับ</label></div>
+        <div class="bar-pair"><i class="b1" style="height:39%"></i><i class="b2" style="height:62%"></i><label>เพ็ญ</label></div>
+        <div class="bar-pair"><i class="b1" style="height:28%"></i><i class="b2" style="height:49%"></i><label>สร้างคอม</label></div>
+      </div>
+    </div>
+  </article>
+
+  <article class="panel disease-panel">
+    <div class="panel-head"><div><h2>สัดส่วนประเภทโรค</h2><p>สรุปข้อมูลสุขภาพในระบบ</p></div></div>
+    <div class="donut-layout"><div class="donut"><div><strong>@Model.Diseases.ToString("N0")</strong><span>รายการ</span></div></div><div class="donut-legend"><div><i class="d1"></i><span>ความดันโลหิตสูง</span><b>34%</b></div><div><i class="d2"></i><span>เบาหวาน</span><b>28%</b></div><div><i class="d3"></i><span>ไขมันในเลือดสูง</span><b>15%</b></div><div><i class="d4"></i><span>โรคหัวใจ</span><b>8%</b></div><div><i class="d5"></i><span>อื่น ๆ</span><b>15%</b></div></div></div>
+  </article>
+
+  <article class="panel announcement-panel">
+    <div class="panel-head"><div><h2><span class="megaphone">◖</span> ข่าวสาร / ประกาศ</h2></div><a class="link-small" asp-controller="Modules" asp-action="Index" asp-route-id="Reports">ดูทั้งหมด</a></div>
+    <div class="announcements">
+      @foreach (var item in Model.Announcements)
+      {
+        <div class="announcement"><i class="@item.Color"></i><div><strong>@item.Title</strong><small>@item.Date</small></div></div>
+      }
+    </div>
+  </article>
+</section>
+
+@if (User.Identity?.IsAuthenticated == true)
+{
+<section class="bottom-shortcuts">
+  <div class="shortcut-card"><span class="shortcut-icon">⌂</span><div><strong>ข้อมูลครัวเรือน</strong><small>ค้นหาและดูรายละเอียดบ้าน</small></div><a asp-controller="Household" asp-action="Index">เปิดหน้า <b>→</b></a></div>
+  <div class="shortcut-card"><span class="shortcut-icon green">♙</span><div><strong>ข้อมูลสมาชิก</strong><small>ดูข้อมูลรายบุคคล</small></div><a asp-controller="Modules" asp-action="Index" asp-route-id="Members">เปิดหน้า <b>→</b></a></div>
+  <div class="shortcut-card"><span class="shortcut-icon orange">▥</span><div><strong>รายงานสถิติ</strong><small>ภาพรวมข้อมูลชุมชน</small></div><a asp-controller="Modules" asp-action="Index" asp-route-id="Reports">เปิดหน้า <b>→</b></a></div>
+</section>
+
+}

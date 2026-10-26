@@ -1,0 +1,38 @@
+@model ModuleDataViewModel
+@{ ViewData["Title"] = Model.Title; }
+<div class="page-heading"><div><div class="eyebrow">LOGBOOK DATA MODULE</div><h1>@Model.Title</h1><p>@Model.Description</p></div><a class="btn-outline" asp-controller="Dashboard" asp-action="Index">← กลับ Dashboard</a></div>
+@if (Model.IsSampleData || !string.IsNullOrWhiteSpace(Model.DbMessage)) { <div class="sample-note"><span>i</span><strong>ข้อมูลตัวอย่าง</strong> @Model.DbMessage</div> }
+@if (!string.IsNullOrWhiteSpace(Model.InformationNote)) { <div class="sample-note"><span>i</span>@Model.InformationNote</div> }
+@if (Model.ModuleId == "Reports" && !string.IsNullOrWhiteSpace(Model.SelectedView)) { <div class="report-back"><a class="btn-outline" asp-controller="Modules" asp-action="Index" asp-route-id="Reports">← รายงานทั้งหมด</a><span>View: <code>@Model.SelectedView</code></span></div> }
+@if (Model.Reports.Count > 0 && string.IsNullOrWhiteSpace(Model.SelectedView))
+{
+  <div class="module-search-row"><div class="search-field"><span>⌕</span><input type="search" value="@Model.Search" placeholder="ค้นหาชื่อรายงานหรือชื่อ View..." data-filter-target=".report-card" /></div><span class="search-caption">ค้นหาจากรายงานที่แสดง</span></div>
+  <div class="report-grid">
+    @foreach (var report in Model.Reports)
+    {
+      <a class="report-card" asp-controller="Modules" asp-action="Index" asp-route-id="Reports" asp-route-view="@report.ViewName">
+        <div class="report-card-icon">▥</div><div class="report-card-content"><strong>@report.Title</strong><small>@report.Description</small><code>@report.ViewName</code></div><div class="report-count">@(report.RowCount?.ToString("N0") ?? "—")<small>แถว</small></div>
+      </a>
+    }
+  </div>
+}
+@if (Model.Columns.Count > 0)
+{
+  <section class="panel module-data-panel">
+    <form asp-controller="Modules" asp-action="Index" method="get" class="module-search-row">
+      <input type="hidden" name="id" value="@Model.ModuleId" />
+      @if (!string.IsNullOrWhiteSpace(Model.SelectedView)) { <input type="hidden" name="view" value="@Model.SelectedView" /> }
+      <div class="search-field"><span>⌕</span><input name="search" value="@Model.Search" type="search" placeholder="ค้นหาข้อมูลในหน้านี้..." data-filter-target="#moduleDataTable tbody tr" data-filter-count="#moduleSearchCount" /></div>
+      <button type="submit" class="btn-outline">ค้นหาทั้งข้อมูล</button><span class="search-caption" id="moduleSearchCount">@Model.Rows.Count รายการ</span>
+    </form>
+    <div class="table-caption"><div><h2>@(Model.SelectedView != null ? "ข้อมูลรายงาน" : "ข้อมูลในระบบ")</h2><span>แสดงสูงสุด 100 รายการต่อหน้า</span></div><span class="table-count">@Model.Rows.Count รายการ</span></div>
+    @if (Model.Rows.Count == 0) { <div class="empty-history"><div>▤</div><strong>ไม่พบข้อมูลในรายการนี้</strong><p>ไม่มีข้อมูลที่ตรงกับตาราง/View นี้ในฐานข้อมูล หรือ View ยังไม่ได้สร้าง</p></div> }
+    else
+    {
+      <div class="table-wrap"><table class="data-table" id="moduleDataTable"><thead><tr>@foreach(var col in Model.Columns){<th>@col</th>}</tr></thead><tbody>
+      @foreach(var row in Model.Rows){<tr>@foreach(var cell in row){<td>@cell</td>}</tr>}
+      </tbody></table></div>
+      <div class="table-bottom"><span>แสดง @Model.Rows.Count รายการล่าสุด/รายการแรก</span></div>
+    }
+  </section>
+}

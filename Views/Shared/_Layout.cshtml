@@ -1,0 +1,72 @@
+@{
+  var currentController = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+  var currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
+  var isLoginPage = currentController == "Account" && currentAction == "Login";
+  var isAuthenticated = User.Identity?.IsAuthenticated == true;
+}
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>@ViewData["Title"] · Logbook</title>
+  <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body class="@(isLoginPage ? "login-screen" : "")">
+  @if (!isLoginPage)
+  {
+    <header class="topbar">
+      <a class="brand" asp-controller="Dashboard" asp-action="Index"><span class="brand-mark">⌂</span><span>Logbook</span></a>
+      <div class="top-title">ระบบข้อมูลครัวเรือนและสังคม (Logbook)</div>
+      <div class="top-actions">
+        <button class="bell" type="button" aria-label="การแจ้งเตือน">♧<span>3</span></button>
+        @if (isAuthenticated)
+        {
+          <div class="account"><span class="avatar">♟</span><div><strong>@(User.FindFirst("FullName")?.Value ?? User.Identity?.Name)</strong><small>@(User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "staff")</small></div><span class="chevron">⌄</span></div>
+          <form asp-controller="Account" asp-action="Logout" method="post" class="logout-form">
+            @Html.AntiForgeryToken()<button class="logout-btn" type="submit" title="ออกจากระบบ">↪</button>
+          </form>
+        }
+        else
+        {
+          <a class="top-login" asp-controller="Account" asp-action="Login">เข้าสู่ระบบ <span>→</span></a>
+        }
+      </div>
+    </header>
+  }
+
+  @if (isAuthenticated && !isLoginPage)
+  {
+    <aside class="sidebar">
+      <div class="sidebar-label">เมนูหลัก</div>
+      <a class="nav-item @(currentController == "Dashboard" ? "active" : "")" asp-controller="Dashboard" asp-action="Index"><span class="nav-icon">⌂</span><span>หน้าหลัก</span></a>
+      <a class="nav-item" asp-controller="Household" asp-action="Index"><span class="nav-icon">♧</span><span>ข้อมูลครัวเรือน</span><b>›</b></a>
+      <a class="nav-item" asp-controller="Assistance" asp-action="Choose"><span class="nav-icon">▤</span><span>ประวัติช่วยเหลือ</span><b>›</b></a>
+      <a class="nav-item @(currentController == "Triage" ? "active" : "")" asp-controller="Triage" asp-action="Index"><span class="nav-icon">◉</span><span>จัดลำดับช่วยเหลือ</span><b>›</b></a>
+      <a class="nav-item" asp-controller="Modules" asp-action="Index" asp-route-id="Members"><span class="nav-icon">♙</span><span>ข้อมูลสมาชิก</span><b>›</b></a>
+      <a class="nav-item" asp-controller="Modules" asp-action="Index" asp-route-id="Health"><span class="nav-icon">♡</span><span>สุขภาพ</span><b>›</b></a>
+      <a class="nav-item" asp-controller="Modules" asp-action="Index" asp-route-id="Income"><span class="nav-icon">฿</span><span>รายได้</span><b>›</b></a>
+      <a class="nav-item" asp-controller="Modules" asp-action="Index" asp-route-id="Welfare"><span class="nav-icon">▣</span><span>สวัสดิการ</span><b>›</b></a>
+      <a class="nav-item" asp-controller="Modules" asp-action="Index" asp-route-id="Vulnerable"><span class="nav-icon">♧</span><span>กลุ่มเปราะบาง</span><b>›</b></a>
+      <a class="nav-item" asp-controller="Modules" asp-action="Index" asp-route-id="Repair"><span class="nav-icon">⚒</span><span>คำร้องซ่อม</span><b>›</b></a>
+      <a class="nav-item" asp-controller="Modules" asp-action="Index" asp-route-id="Reports"><span class="nav-icon">▥</span><span>รายงาน</span><b>›</b></a>
+      @if (User.IsInRole("admin"))
+      {
+        <a class="nav-item" asp-controller="Modules" asp-action="Index" asp-route-id="Users"><span class="nav-icon">♟</span><span>จัดการผู้ใช้</span><b>›</b></a>
+        <a class="nav-item" asp-controller="Modules" asp-action="Index" asp-route-id="Settings"><span class="nav-icon">⚙</span><span>ตั้งค่าระบบ</span><b>›</b></a>
+      }
+      <div class="sidebar-footer">© 2026 Logbook</div>
+    </aside>
+  }
+
+  <main class="page @(isAuthenticated && !isLoginPage ? "with-sidebar" : "public-page")">
+    @RenderBody()
+  </main>
+  @if (!isLoginPage)
+  {
+    <footer class="page-footer">พัฒนาโดย ทีมพัฒนาระบบ <span>|</span> Logbook</footer>
+  }
+  <script src="~/js/site.js" asp-append-version="true"></script>
+  @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

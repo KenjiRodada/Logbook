@@ -1,0 +1,24 @@
+@model AssistanceCreateViewModel
+@{ ViewData["Title"] = "บันทึกความช่วยเหลือ"; }
+<div class="page-heading"><div><div class="eyebrow">NEW ASSISTANCE RECORD</div><h1>บันทึกความช่วยเหลือที่ได้รับ</h1><p>บันทึกเงิน สิ่งของ อุปกรณ์ หรือโครงการที่มอบให้บุคคล/ครัวเรือน</p></div><a class="btn-outline" asp-controller="Assistance" asp-action="Index" asp-route-houseId="@Model.HouseId" asp-route-memberId="@Model.MemberId">← กลับประวัติ</a></div>
+@if (ViewBag.Error != null) { <div class="sample-note"><span>!</span>@ViewBag.Error</div> }
+<div asp-validation-summary="ModelOnly" class="sample-note"></div>
+<section class="panel assistance-form-panel">
+  <div class="sample-note"><span>i</span> การบันทึกในหน้านี้จะเพิ่มข้อมูลลงตาราง <code>assistance_history</code> เท่านั้น ไม่แก้ไขตารางเดิม หากยังไม่มีตารางให้รัน SQL ในโฟลเดอร์ Database ก่อน</div>
+  <form asp-action="Create" method="post" class="assistance-form">
+    @Html.AntiForgeryToken()
+    <input asp-for="HouseId" type="hidden" /><input asp-for="MemberId" type="hidden" />
+    <div class="form-grid">
+      <label>ขอบเขตการช่วยเหลือ<input value="@(Model.MemberId.HasValue ? "รายบุคคล" : "ระดับครัวเรือน")" readonly /></label>
+      <label>รหัสบ้าน<input value="@Model.HouseId" readonly /></label>
+      <label>ประเภทการช่วยเหลือ<select asp-for="AssistanceType"><option>เงินช่วยเหลือ</option><option>สิ่งของช่วยเหลือ</option><option>อุปกรณ์การแพทย์</option><option>ซ่อมแซมบ้าน</option><option>สวัสดิการ</option><option>ทุนการศึกษา</option><option>อื่น ๆ</option></select><span asp-validation-for="AssistanceType"></span></label>
+      <label>ชื่อโครงการ / รายการ<input asp-for="ProgramName" placeholder="เช่น เงินช่วยเหลือฉุกเฉิน" /><span asp-validation-for="ProgramName"></span></label>
+      <label>วันที่ได้รับ<input asp-for="AssistanceDate" type="date" /><span asp-validation-for="AssistanceDate"></span></label>
+      <label>จำนวนเงิน (บาท) ถ้ามี<input asp-for="Amount" type="number" min="0" step="0.01" placeholder="0.00" /><span asp-validation-for="Amount"></span></label>
+      <label>สถานะ<select asp-for="Status"><option>ได้รับแล้ว</option><option>ส่งมอบแล้ว</option><option>กำลังดำเนินการ</option><option>รอดำเนินการ</option><option>ยกเลิก</option></select></label>
+      <label>หน่วยงานผู้ให้<input asp-for="Provider" placeholder="ชื่อหน่วยงาน/โครงการ" /></label>
+      <label class="full-span">รายละเอียดเพิ่มเติม<textarea asp-for="Description" rows="4" placeholder="ระบุสิ่งที่ให้ จำนวน หรือรายละเอียดที่จำเป็น"></textarea></label>
+    </div>
+    <div class="form-actions"><a class="btn-outline" asp-controller="Assistance" asp-action="Index" asp-route-houseId="@Model.HouseId" asp-route-memberId="@Model.MemberId">ยกเลิก</a><button type="submit" class="btn-primary">บันทึกประวัติ</button></div>
+  </form>
+</section>

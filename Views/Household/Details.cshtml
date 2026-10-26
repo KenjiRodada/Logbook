@@ -1,0 +1,39 @@
+@model HouseholdDetailsViewModel
+@{ ViewData["Title"] = "รายละเอียดครัวเรือน"; }
+<div class="page-heading"><div><div class="eyebrow">HOUSEHOLD PROFILE</div><h1>รายละเอียดครัวเรือน</h1><p>ข้อมูลบ้าน สมาชิก และประวัติการช่วยเหลือของครอบครัว</p></div><a class="btn-outline" asp-controller="Household" asp-action="Index">← กลับรายการ</a></div>
+@if (Model.IsSampleData) { <div class="sample-note"><span>i</span> กำลังแสดงข้อมูลตัวอย่าง เนื่องจากยังไม่สามารถอ่านรายละเอียดจากฐานข้อมูลได้ — ตัวอย่างนี้ไม่ใช่ข้อมูลจริง</div> }
+<div class="breadcrumb"><a asp-controller="Dashboard" asp-action="Index">หน้าหลัก</a><span>›</span><a asp-controller="Household" asp-action="Index">ข้อมูลครัวเรือน</a><span>›</span><strong>รายละเอียด</strong></div>
+<section class="panel household-profile">
+  <div class="profile-section-title"><h2>ข้อมูลบ้าน</h2><span class="status-pill">● ใช้งาน</span></div>
+  <div class="house-summary"><div class="house-photo"><div class="house-illustration"><span>⌂</span></div></div><div class="house-fields">
+    <div><small>รหัสบ้าน</small><strong>@Model.HouseCode</strong></div><div><small>ปีสำรวจ (พ.ศ.)</small><strong>@Model.SurveyYear</strong></div><div><small>บ้านเลขที่</small><strong>@Model.HouseNo</strong></div><div><small>หมู่บ้าน</small><strong>@Model.Village</strong></div><div><small>ตำบล</small><strong>@Model.Tumbol</strong></div><div><small>อำเภอ</small><strong>@Model.Amphur</strong></div><div><small>จังหวัด</small><strong>@Model.Province</strong></div><div><small>จุดสังเกต</small><strong>@(string.IsNullOrWhiteSpace(Model.Location) ? "-" : Model.Location)</strong></div>
+  </div></div>
+  <div class="history-hero-actions"><div><strong>ประวัติการช่วยเหลือของครอบครัว</strong><small>ตรวจสอบรายการที่ได้รับแล้ว คำร้องที่กำลังดำเนินการ และสถานะสวัสดิการ</small></div><a class="btn-primary" asp-controller="Assistance" asp-action="Index" asp-route-houseId="@Model.HouseId">ดูประวัติทั้งหมด →</a></div>
+</section>
+<section class="panel members-panel">
+  <div class="tab-bar"><span class="tab active">สมาชิกในบ้าน</span><span class="tab">รายได้</span><span class="tab">สุขภาพ</span><span class="tab">สวัสดิการ</span><span class="tab">ค่าใช้จ่าย/หนี้สิน</span><span class="tab">รูปภาพ</span></div>
+  <div class="table-caption"><div><h2>สมาชิกในครัวเรือน</h2><span>พบสมาชิกทั้งหมด @Model.MemberCount คน · กดประวัติรายบุคคลเพื่อดูว่าเคยได้รับความช่วยเหลืออะไร</span></div><a class="btn-outline" asp-controller="Modules" asp-action="Index" asp-route-id="Members">＋ เพิ่มสมาชิก</a></div>
+  <div class="module-search-row"><div class="search-field"><span>⌕</span><input type="search" placeholder="ค้นหาชื่อสมาชิก อายุ เพศ หรืออาชีพ..." data-filter-target="#householdMembersTable tbody tr" data-filter-count="#householdMembersCount" /></div><span class="search-caption" id="householdMembersCount">@Model.Members.Count คน</span></div>
+  <div class="table-wrap"><table class="data-table" id="householdMembersTable"><thead><tr><th>ลำดับ</th><th>ชื่อ-นามสกุล</th><th>อายุ</th><th>เพศ</th><th>อาชีพ</th><th>ประวัติการช่วยเหลือ</th></tr></thead><tbody>
+  @for (var i=0;i<Model.Members.Count;i++){var m=Model.Members[i];<tr><td>@(i+1)</td><td><span class="person-name">@m.FullName</span></td><td>@(m.Age?.ToString() ?? "-")</td><td>@m.Gender</td><td>@m.Occupation</td><td><a class="action-view" asp-controller="Assistance" asp-action="Index" asp-route-houseId="@Model.HouseId" asp-route-memberId="@m.MemberId" title="ดูประวัติการช่วยเหลือของบุคคลนี้">⌕ ดูประวัติ</a></td></tr>}
+  </tbody></table></div>
+  <div class="profile-actions"><span>ข้อมูลครัวเรือนรหัส @Model.HouseCode</span><a class="btn-primary" asp-controller="Modules" asp-action="Index" asp-route-id="HouseholdEdit">✎ แก้ไขข้อมูล</a></div>
+</section>
+<section class="panel assistance-summary-panel">
+  <div class="table-caption"><div><h2>รายการช่วยเหลือ / คำร้องล่าสุด</h2><span>รวมรายการจากประวัติช่วยเหลือและคำร้องซ่อมเดิม</span></div><a class="btn-outline" asp-controller="Assistance" asp-action="Index" asp-route-houseId="@Model.HouseId">ดูทั้งหมด →</a></div>
+  @if (!Model.AssistanceHistoryTableAvailable) { <div class="sample-note"><span>i</span> @Model.AssistanceHistoryNotice</div> }
+  @if (Model.AssistanceRecords.Count == 0) { <div class="empty-history"><div>▤</div><strong>ยังไม่มีประวัติช่วยเหลือที่บันทึกไว้</strong><p>เมื่อบันทึกความช่วยเหลือหรือมีคำร้องในระบบ รายการจะปรากฏตรงนี้</p></div> }
+  else {
+    <div class="module-search-row"><div class="search-field"><span>⌕</span><input type="search" placeholder="ค้นหารายการช่วยเหลือหรือสถานะ..." data-filter-target="#latestAssistanceTable tbody tr" /></div></div>
+    <div class="table-wrap"><table class="data-table" id="latestAssistanceTable"><thead><tr><th>วันที่</th><th>ประเภท</th><th>รายการ</th><th>งบประมาณ</th><th>สถานะ</th></tr></thead><tbody>
+    @foreach (var item in Model.AssistanceRecords.Take(5)) { <tr><td>@(item.AssistanceDate.HasValue ? $"{item.AssistanceDate.Value.Day:00}/{item.AssistanceDate.Value.Month:00}/{item.AssistanceDate.Value.Year + 543}" : "-")</td><td>@item.Category</td><td><strong>@item.ProgramName</strong><small class="muted-row">@item.Scope · @item.Recipient</small></td><td>@(item.Amount.HasValue ? item.Amount.Value.ToString("N2") + " บาท" : "-")</td><td><span class="history-status">@item.Status</span></td></tr> }
+    </tbody></table></div>
+  }
+</section>
+<section class="panel assistance-summary-panel">
+  <div class="table-caption"><div><h2>สถานะสวัสดิการปัจจุบัน</h2><span>สถานะจากตาราง member_welfare (ไม่ใช่ประวัติการรับเงินย้อนหลัง)</span></div></div>
+  @if (Model.WelfareStatuses.Count == 0) { <div class="empty-history compact-empty">ยังไม่มีข้อมูลสวัสดิการสำหรับครัวเรือนนี้</div> }
+  else { <div class="module-search-row"><div class="search-field"><span>⌕</span><input type="search" placeholder="ค้นหาสมาชิกหรือประเภทสวัสดิการ..." data-filter-target="#householdWelfareTable tbody tr" /></div></div><div class="table-wrap"><table class="data-table" id="householdWelfareTable"><thead><tr><th>สมาชิก</th><th>ประเภทสวัสดิการ</th><th>สถานะบัตร</th><th>อัปเดตล่าสุด</th></tr></thead><tbody>
+    @foreach (var w in Model.WelfareStatuses) { <tr><td>@w.MemberName</td><td>@w.WelfareName</td><td><span class="history-status @(w.HasWelfareCard ? "received" : "pending")">@(w.HasWelfareCard ? "มีบัตร" : "ไม่มีบัตร/ไม่ระบุ")</span></td><td>@(w.UpdatedAt.HasValue ? $"{w.UpdatedAt.Value.Day:00}/{w.UpdatedAt.Value.Month:00}/{w.UpdatedAt.Value.Year + 543}" : "-")</td></tr> }
+  </tbody></table></div> }
+</section>

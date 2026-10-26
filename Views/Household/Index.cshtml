@@ -1,0 +1,18 @@
+@model List<HouseholdRow>
+@{ ViewData["Title"] = "ข้อมูลครัวเรือน"; }
+<div class="page-heading"><div><div class="eyebrow">DATA MANAGEMENT</div><h1>ข้อมูลครัวเรือน</h1><p>ค้นหา ตรวจสอบ และเปิดดูรายละเอียดข้อมูลบ้านในระบบ</p></div><a class="btn-primary" asp-controller="Modules" asp-action="Index" asp-route-id="HouseholdCreate">＋ เพิ่มข้อมูล</a></div>
+@if (ViewBag.DbMessage != null) { <div class="sample-note"><span>i</span> @ViewBag.DbMessage</div> }
+<div class="breadcrumb"><a asp-controller="Dashboard" asp-action="Index">หน้าหลัก</a><span>›</span><strong>ข้อมูลครัวเรือน</strong></div>
+<section class="panel household-panel">
+  <form class="filter-bar" method="get" asp-action="Index">
+    <div class="search-field"><span>⌕</span><input name="search" value="@ViewBag.Search" placeholder="ค้นหารหัสบ้าน ชื่อบ้าน หรือหมู่บ้าน" data-filter-target="#householdsTable tbody tr" /></div>
+    <label>อำเภอ<select name="amphur"><option value="">ทุกอำเภอ</option><option selected="@(ViewBag.Amphur as string == "เมือง")">เมือง</option><option selected="@(ViewBag.Amphur as string == "วานรนิวาส")">วานรนิวาส</option></select></label>
+    <label>ตำบล<select name="tumbol"><option value="">ทุกตำบล</option><option selected="@(ViewBag.Tumbol as string == "นาอ้อ")">นาอ้อ</option><option selected="@(ViewBag.Tumbol as string == "โพนสูง")">โพนสูง</option></select></label>
+    <button class="btn-primary" type="submit">⌕ ค้นหา</button>
+  </form>
+  <div class="table-caption"><div><h2>รายการครัวเรือน</h2><span>แสดงข้อมูลล่าสุดในระบบ</span></div><span class="table-count">@Model.Count รายการ</span></div>
+  <div class="table-wrap"><table class="data-table" id="householdsTable"><thead><tr><th>ลำดับ</th><th>รหัสบ้าน</th><th>ชื่อหมู่บ้าน</th><th>ตำบล</th><th>อำเภอ</th><th>ปีสำรวจ</th><th>สมาชิก</th><th>จัดการ</th></tr></thead><tbody>
+  @for (var i = 0; i < Model.Count; i++) { var row = Model[i]; <tr><td>@(i+1)</td><td><span class="code-pill">@row.HouseCode</span></td><td>@row.Village</td><td>@row.Tumbol</td><td>@row.Amphur</td><td>@row.SurveyYear</td><td><span class="member-count">@row.MemberCount คน</span></td><td class="action-cell"><a class="action-view" asp-action="Details" asp-route-id="@row.HouseId" title="ดู">⌕</a><a class="action-edit" asp-controller="Modules" asp-action="Index" asp-route-id="HouseholdEdit" title="แก้ไข">✎</a></td></tr> }
+  </tbody></table></div>
+  <div class="table-bottom"><span>แสดง 1–@Model.Count จากข้อมูลที่พบ</span><div class="pagination"><button disabled>‹</button><button class="selected">1</button><button>2</button><button>3</button><button>4</button><button>5</button><button>›</button></div></div>
+</section>

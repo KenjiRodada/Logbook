@@ -1,0 +1,57 @@
+@model Logbook.Models.TriageViewModel
+@{
+    ViewData["Title"] = "คัดกรองและจัดลำดับช่วยเหลือ";
+}
+<div class="page-heading">
+  <div><div class="eyebrow">NEEDS ASSESSMENT</div><h1>คัดกรองและจัดลำดับช่วยเหลือ</h1><p>ค้นหาครัวเรือนที่มีสมาชิกอยู่ในกลุ่มเปราะบาง และจัดคิวตามสัญญาณความจำเป็นที่บันทึกไว้</p></div>
+  <a class="btn-outline" asp-controller="Dashboard" asp-action="Index">← กลับหน้าหลัก</a>
+</div>
+@if (!string.IsNullOrWhiteSpace(Model.Notice)) { <div class="sample-note"><span>i</span>@Model.Notice</div> }
+<div class="sample-note"><span>i</span><strong>ข้อควรทราบ:</strong> สีเป็นข้อเสนอแนะเพื่อช่วยเจ้าหน้าที่จัดคิว ไม่ใช่การตัดสินสิทธิ์โดยอัตโนมัติ กรุณาตรวจสอบข้อมูลล่าสุดและยืนยันกับครัวเรือนก่อนสรุปผล</div>
+
+<section class="triage-summary">
+  <a class="triage-stat red @(Model.Priority == "Red" ? "chosen" : "")" asp-action="Index" asp-route-priority="Red" asp-route-search="@Model.Search" asp-route-groupId="@Model.GroupId"><span class="triage-dot"></span><div><small>ช่วยเหลือเร่งด่วน</small><strong>@Model.RedCount</strong><span>ครัวเรือน</span></div></a>
+  <a class="triage-stat yellow @(Model.Priority == "Yellow" ? "chosen" : "")" asp-action="Index" asp-route-priority="Yellow" asp-route-search="@Model.Search" asp-route-groupId="@Model.GroupId"><span class="triage-dot"></span><div><small>ควรช่วยเหลือ</small><strong>@Model.YellowCount</strong><span>ครัวเรือน</span></div></a>
+  <a class="triage-stat green @(Model.Priority == "Green" ? "chosen" : "")" asp-action="Index" asp-route-priority="Green" asp-route-search="@Model.Search" asp-route-groupId="@Model.GroupId"><span class="triage-dot"></span><div><small>ให้คำแนะนำ/ติดตาม</small><strong>@Model.GreenCount</strong><span>ครัวเรือน</span></div></a>
+  <a class="triage-stat all @(Model.Priority == "All" ? "chosen" : "")" asp-action="Index" asp-route-priority="All" asp-route-search="@Model.Search" asp-route-groupId="@Model.GroupId"><span class="triage-dot"></span><div><small>ทุกระดับ</small><strong>@Model.AllRows.Count</strong><span>ครัวเรือน</span></div></a>
+</section>
+
+<section class="panel triage-panel">
+  <form method="get" asp-action="Index" class="triage-filter">
+    <div class="search-field triage-search"><span>⌕</span><input name="search" value="@Model.Search" placeholder="ค้นหารหัสบ้าน หมู่บ้าน ตำบล หรือกลุ่มเปราะบาง" /></div>
+    <label>ระดับความช่วยเหลือ<select name="priority"><option value="All" selected="@(Model.Priority == "All")">ทุกระดับ</option><option value="Red" selected="@(Model.Priority == "Red")">🔴 ช่วยเหลือเร่งด่วน</option><option value="Yellow" selected="@(Model.Priority == "Yellow")">🟡 ควรช่วยเหลือ</option><option value="Green" selected="@(Model.Priority == "Green")">🟢 ให้คำแนะนำ/ติดตาม</option></select></label>
+    <label>กลุ่มเปราะบาง<select name="groupId"><option value="">ทุกกลุ่ม (@Model.GroupOptions.Count ประเภทในฐานข้อมูล)</option>@foreach(var g in Model.GroupOptions){<option value="@g.Id" selected="@(Model.GroupId == g.Id)">@g.Name</option>}</select></label>
+    <button type="submit" class="btn-primary">⌕ ค้นหา</button>
+    <a class="btn-outline" asp-action="Index">ล้างตัวกรอง</a>
+  </form>
+  <div class="table-caption"><div><h2>คิวครัวเรือนตามระดับความจำเป็น</h2><span>แสดงเหตุผลประกอบการจัดระดับเพื่อให้ตรวจสอบได้</span></div><span class="table-count">@Model.Rows.Count รายการ</span></div>
+  @if (Model.Rows.Count == 0)
+  {
+    <div class="empty-history"><div>⌕</div><strong>ไม่พบครัวเรือนตามตัวกรองนี้</strong><p>ลองเปลี่ยนคำค้นหาระดับหรือประเภทกลุ่มเปราะบาง</p></div>
+  }
+  else
+  {
+    <div class="table-wrap"><table class="data-table triage-table" id="triageTable"><thead><tr><th>ลำดับ</th><th>ครัวเรือน / พื้นที่</th><th>กลุ่มเปราะบาง</th><th>สัญญาณความจำเป็น</th><th>ระดับที่แนะนำ</th><th>ประวัติช่วยเหลือ</th><th>รายละเอียด</th></tr></thead><tbody>
+    @for (var i=0;i<Model.Rows.Count;i++) { var row=Model.Rows[i];
+      <tr data-priority="@row.PriorityCode">
+        <td>@(i+1)</td>
+        <td><strong>@row.HouseCode</strong><small class="muted-row">@row.Village · ตำบล@row.Tumbol · อำเภอ@row.Amphur</small><small class="muted-row">สมาชิก @row.MemberCount คน</small></td>
+        <td><strong>@row.VulnerableMemberCount คน</strong><small class="muted-row">@row.VulnerableTypeCount ประเภท</small><span class="triage-types">@row.VulnerableTypes</span></td>
+        <td><small>ผู้มีภาวะพึ่งพิงตามฟิลด์: <strong>@row.HighDependencyCount</strong></small><small class="muted-row">คำร้องที่ยังไม่เสร็จ: @row.OpenRequestCount</small></td>
+        <td><span class="priority-badge @row.PriorityCode.ToLowerInvariant()">@row.PriorityLabel</span><small class="priority-reason">@row.PriorityReason</small></td>
+        <td><strong>@row.AssistanceCount รายการ</strong><small class="muted-row">มีบัตรสวัสดิการ @row.WelfareCardCount คน</small>@if(row.LastAssistanceDate.HasValue){<small class="muted-row">ล่าสุด @row.LastAssistanceDate.Value.ToString("dd/MM/yyyy")</small>}</td>
+        <td><a class="action-view" asp-controller="Household" asp-action="Details" asp-route-id="@row.HouseId">เปิดแฟ้ม →</a></td>
+      </tr>
+    }
+    </tbody></table></div>
+  }
+  <div class="triage-criteria">
+    <h3>เกณฑ์จัดระดับเบื้องต้น</h3>
+    <div class="criteria-grid">
+      <div><span class="priority-badge red">แดง · ช่วยเหลือเร่งด่วน</span><p>มีคำร้องค้างพร้อมภาวะพึ่งพิง, มีสมาชิกที่ต้องพึ่งพิงตั้งแต่ 2 คนขึ้นไป หรือพบสมาชิกเปราะบางหลายคนและหลายประเภท</p></div>
+      <div><span class="priority-badge yellow">เหลือง · ควรช่วยเหลือ</span><p>มีคำร้องค้าง, สมาชิก/ประเภทกลุ่มเปราะบางหลายรายการ หรือยังไม่พบหลักฐานการช่วยเหลือในข้อมูลที่ตรวจสอบได้</p></div>
+      <div><span class="priority-badge green">เขียว · ให้คำแนะนำ/ติดตาม</span><p>มีข้อมูลสวัสดิการหรือประวัติช่วยเหลือและไม่พบสัญญาณเร่งด่วนจากฟิลด์ที่ตรวจสอบ ควรติดตามตามรอบ</p></div>
+    </div>
+    <p class="criteria-footnote">กฎนี้เป็นค่าเริ่มต้นที่อธิบายได้และปรับแก้ภายหลังได้ ไม่ใช่เกณฑ์ทางราชการ และไม่ใช้แทนการประเมินสถานการณ์จริงโดยเจ้าหน้าที่ สีแดงไม่ได้แปลว่ามีสิทธิ์รับเงินโดยอัตโนมัติ</p>
+  </div>
+</section>
